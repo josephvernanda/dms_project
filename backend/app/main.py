@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.api import auth, documents, permissions, notifications
 
+
 app = FastAPI(
     title="DMS - Document Management System API",
     description="""
