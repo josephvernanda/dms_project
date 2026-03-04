@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, Form
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from app.core.security import hash_password, verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 fake_users_db = {}
 
+# REGISTER
 @router.post("/register")
 def register(username: str, password: str):
 
@@ -16,22 +18,19 @@ def register(username: str, password: str):
     return {"message": "User registered successfully"}
 
 
-from fastapi import Form
-
+# LOGIN (OAuth2 compatible)
 @router.post("/login")
-def login(
-    username: str = Form(..., description="Enter your username"),
-    password: str = Form(..., description="Enter your password")
-):
-    user = fake_users_db.get(username)
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+
+    user = fake_users_db.get(form_data.username)
 
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    if not verify_password(password, user):
+    if not verify_password(form_data.password, user):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    access_token = create_access_token({"sub": username})
+    access_token = create_access_token({"sub": form_data.username})
 
     return {
         "access_token": access_token,
